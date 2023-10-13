@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import pyautogui
 import sys
-import pyaudio
+import sounddevice as sd
 import wave
 import threading
 
@@ -61,23 +61,12 @@ def meetingStart():
 
 #record audio
 def record_audio(audio_frames):
-    audio_recorder = pyaudio.PyAudio()
+    def audio_callback(indata, frames, time, status):
+        audio_frames.extend(indata.tobytes())
 
-    audio_stream = audio_recorder.open(
-        format=pyaudio.paInt16,
-        channels=2,
-        rate=44100,
-        input=True,
-        frames_per_buffer=1024,
-    )
-
-    while not meeting_end:
-        audio_data = audio_stream.read(1024)
-        audio_frames.append(audio_data)
-
-    audio_stream.stop_stream()
-    audio_stream.close()
-    audio_recorder.terminate()
+    with sd.InputStream(callback=audio_callback):
+        while not meeting_end:
+            pass
 
 
 def record_video():
